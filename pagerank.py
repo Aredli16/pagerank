@@ -1,7 +1,12 @@
+# Delcroix Thomas
+# Lempereur Corentin
+# Parent Anthony
+# Blairon Mathis
+
 import os
 import re
 import sys
-
+import random
 DAMPING = 0.85
 SAMPLES = 10000
 
@@ -64,19 +69,42 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    page_rank = {page: 0 for page in corpus}
+    sample = random.choice(list(corpus.keys()))
+
+    for _ in range(n):
+        page_rank[sample] += 1
+        if random.random() < damping_factor and len(corpus[sample]) > 0:
+            sample = random.choice(list(corpus[sample]))
+        else:
+            sample = random.choice(list(corpus.keys()))
+
+    page_rank = {page: rank / n for page, rank in page_rank.items()}
+    return page_rank
 
 
 def iterate_pagerank(corpus, damping_factor):
-    """
-    Return PageRank values for each page by iteratively updating
-    PageRank values until convergence.
+    num_pages = len(corpus)
+    page_rank = {page: 1 / num_pages for page in corpus}
+    new_rank = page_rank.copy()
 
-    Return a dictionary where keys are page names, and values are
-    their estimated PageRank value (a value between 0 and 1). All
-    PageRank values should sum to 1.
-    """
-    raise NotImplementedError
+    change = True
+    while change:
+        change = False
+        for page in page_rank:
+            rank = (1 - damping_factor) / num_pages
+            for other_page in corpus:
+                if page in corpus[other_page]:
+                    rank += damping_factor * page_rank[other_page] / len(corpus[other_page])
+            new_rank[page] = rank
+
+            if abs(new_rank[page] - page_rank[page]) > 0.001:
+                change = True
+
+        page_rank = new_rank.copy()
+
+    return page_rank
+
 
 
 if __name__ == "__main__":
